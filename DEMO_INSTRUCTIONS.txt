@@ -1,0 +1,45 @@
+Behavioral Biometric Authentication Demo
+=====================================
+
+Quick Start Guide
+----------------
+
+1. Simply double-click the 'start_demo.command' file
+   - This will automatically set up everything needed
+   - The demo page will open in your default web browser
+
+2. If you see a security warning:
+   - Right-click on 'start_demo.command'
+   - Select 'Open'
+   - Click 'Open' in the security dialog
+
+3. To stop the demo:
+   - Go back to the terminal window that opened
+   - Press Ctrl+C
+   - Close the terminal window
+
+Requirements
+-----------
+- macOS
+- Python 3.7 or higher
+- Internet connection (first time only, for downloading dependencies)
+
+Troubleshooting
+--------------
+If you encounter any issues:
+
+1. "Port 5001 is in use":
+   - Close other applications that might be using port 5001
+   - Try running the demo again
+
+2. "Permission denied":
+   - Open Terminal
+   - Navigate to the demo folder
+   - Run: chmod +x start_demo.command
+
+3. Browser doesn't open automatically:
+   - Wait 30 seconds after starting the demo
+   - Manually open your web browser
+   - Go to: http://localhost:5001
+
+For additional help or issues, please contact support. 

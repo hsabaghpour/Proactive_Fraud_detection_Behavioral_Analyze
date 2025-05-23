@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Behavioral Biometric Authentication Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input[type="text"],
+      input[type="password"],
+      textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #riskIndicator {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 4px;
+        display: none;
+      }
+      .risk-low {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .risk-medium {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+      .risk-high {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .guide {
+        background-color: #e9ecef;
+        padding: 20px;
+        border-radius: 4px;
+        margin-bottom: 30px;
+      }
+      .guide h2 {
+        color: #2c3e50;
+        margin-top: 0;
+      }
+      .guide ol {
+        padding-left: 20px;
+      }
+      .guide li {
+        margin-bottom: 10px;
+      }
+      .note {
+        font-style: italic;
+        color: #666;
+        font-size: 0.9em;
+      }
+      .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+      .status-active {
+        background-color: #28a745;
+      }
+      .status-inactive {
+        background-color: #dc3545;
+      }
+      #dataCollectionStatus {
+        font-size: 0.9em;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Behavioral Biometric Authentication Demo</h1>
+
+    <div class="guide">
+      <h2>How to Use This Demo</h2>
+      <p class="note">
+        Want to understand how it works?
+        <a href="/pipeline" target="_blank">View the Pipeline Architecture →</a>
+      </p>
+      <ol>
+        <li>
+          <strong>Start:</strong> The system will automatically begin collecting
+          your typing and mouse movement patterns as soon as you interact with
+          the form.
+        </li>
+        <li>
+          <strong>Enter Information:</strong>
+          <ul>
+            <li>Type any username (it doesn't need to be real)</li>
+            <li>Type any password (it's not stored)</li>
+            <li>
+              Write a short message in the text area - try to type naturally
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>Move Your Mouse:</strong> Move your cursor around the page
+          naturally while typing.
+        </li>
+        <li>
+          <strong>Analyze:</strong> Click the "Analyze Behavior" button to see
+          your risk assessment.
+        </li>
+        <li>
+          <strong>Results:</strong> You'll see one of three risk levels:
+          <ul>
+            <li>
+              <span style="color: #155724">✓ Low Risk (Green)</span> - Normal
+              behavior pattern
+            </li>
+            <li>
+              <span style="color: #856404">⚠ Medium Risk (Yellow)</span> - Some
+              unusual patterns
+            </li>
+            <li>
+              <span style="color: #721c24">⚠ High Risk (Red)</span> - Suspicious
+              behavior detected
+            </li>
+          </ul>
+        </li>
+      </ol>
+      <p class="note">
+        Note: This is a demo system. In a real application, this technology
+        would run in the background to detect potential fraud attempts.
+      </p>
+    </div>
+
+    <div id="dataCollectionStatus">
+      Status:
+      <span class="status-indicator status-inactive" id="statusDot"></span>
+      <span id="statusText">Waiting for interaction...</span>
+    </div>
+
+    <form id="demoForm" onsubmit="return false;">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input
+          type="text"
+          id="username"
+          required
+          placeholder="Enter any username"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          required
+          placeholder="Enter any password"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="message">Type a short message:</label>
+        <textarea
+          id="message"
+          rows="4"
+          required
+          placeholder="Type naturally about anything - for example, describe your day or write about your favorite hobby..."
+        ></textarea>
+      </div>
+
+      <button type="submit" onclick="analyzeSession()">Analyze Behavior</button>
+    </form>
+
+    <div id="riskIndicator"></div>
+
+    <script src="js/collector.js"></script>
+    <script>
+      const collector = new BehavioralDataCollector("http://localhost:5001");
+      const statusDot = document.getElementById("statusDot");
+      const statusText = document.getElementById("statusText");
+      let hasInteracted = false;
+
+      // Update status when user interacts with the form
+      document.querySelectorAll("input, textarea").forEach((element) => {
+        element.addEventListener("input", function () {
+          if (!hasInteracted) {
+            hasInteracted = true;
+            statusDot.classList.remove("status-inactive");
+            statusDot.classList.add("status-active");
+            statusText.textContent = "Collecting behavioral data...";
+          }
+        });
+      });
+
+      async function analyzeSession() {
+        if (!hasInteracted) {
+          alert(
+            "Please interact with the form first by typing and moving your mouse around."
+          );
+          return;
+        }
+
+        const button = document.querySelector("button");
+        button.disabled = true;
+        button.textContent = "Analyzing...";
+        statusText.textContent = "Analyzing behavior...";
+
+        console.log("Analyzing session...");
+        const result = await collector.analyzeSession();
+        console.log("Analysis result:", result);
+
+        button.disabled = false;
+        button.textContent = "Analyze Behavior";
+
+        const indicator = document.getElementById("riskIndicator");
+
+        if (result) {
+          console.log("Displaying result...");
+          indicator.style.display = "block";
+
+          let riskClass = "risk-low";
+          let message = "Low Risk: Your behavior appears normal.";
+          let icon = "✓";
+
+          if (result.risk_score > 0.7) {
+            riskClass = "risk-high";
+            message = "High Risk: Suspicious behavior detected!";
+            icon = "⚠";
+          } else if (result.risk_score > 0.3) {
+            riskClass = "risk-medium";
+            message = "Medium Risk: Some unusual patterns detected.";
+            icon = "⚠";
+          }
+
+          indicator.className = "";
+          indicator.classList.add(riskClass);
+
+          const factorsList = result.factors
+            .map((factor) => `<li>${factor}</li>`)
+            .join("");
+
+          indicator.innerHTML = `
+            <h3>${icon} ${message}</h3>
+            <p>Risk Score: ${(result.risk_score * 100).toFixed(1)}%</p>
+            <p>Confidence: ${(result.confidence * 100).toFixed(1)}%</p>
+            <h4>Contributing Factors:</h4>
+            <ul>${factorsList}</ul>
+            <p class="note">In a real system, this score would be used to determine if additional verification is needed.</p>
+          `;
+
+          statusText.textContent = "Analysis complete";
+        } else {
+          console.log("Error: No result received");
+          indicator.style.display = "block";
+          indicator.className = "risk-high";
+          indicator.innerHTML =
+            "<h3>⚠ Error analyzing behavior</h3><p>Please try again.</p>";
+          statusText.textContent = "Error during analysis";
+        }
+      }
+    </script>
+  </body>
+</html>

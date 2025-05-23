@@ -1,0 +1,46 @@
+# AWS Configuration
+aws:
+  region: us-west-2
+  feature_store_bucket: fraud-detection-features
+  model_bucket: fraud-detection-models
+
+  # EMR Cluster Configuration
+  emr:
+    cluster_name: fraud-detection-cluster
+    instance_type: m5.xlarge
+    instance_count: 3
+    applications:
+      - Spark
+      - Hadoop
+      - Livy
+
+# MLflow Configuration
+mlflow:
+  tracking_uri: http://mlflow-server:5002
+  experiment_name: fraud_detection
+
+  # Model Registry
+  model_registry:
+    stage: production
+    model_name: fraud_detection_model
+
+# Feature Store Configuration
+feature_store:
+  update_frequency: 1h
+  retention_period: 90d
+  storage_format: parquet
+
+# Model Monitoring
+monitoring:
+  metrics_update_frequency: 5m
+  alert_thresholds:
+    false_positive_rate: 0.1
+    model_drift_threshold: 0.2
+    performance_degradation_threshold: 0.15
+
+# Scaling Configuration
+scaling:
+  min_instances: 2
+  max_instances: 10
+  target_cpu_utilization: 70
+  cooldown_period: 300
